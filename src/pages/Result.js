@@ -5,7 +5,6 @@ import {useLocation} from 'react-router-dom';
 const Result = () => {
     const location = useLocation();
     const {wins} = location.state;
-    console.log(`${wins.id} / ${wins.name} / ${wins.picture}`);
     return (
         <Container>
             <p1>느그 선택</p1>
@@ -16,6 +15,6 @@ const Result = () => {
             />
         </Container>
     )
-}
+};
 
 export default Result;

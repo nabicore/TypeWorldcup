@@ -4,31 +4,68 @@ import {CardGroup, Container} from "react-bootstrap";
 import PersonCard from "../fragments/PersonCard";
 import {useLocation, useHistory, Redirect} from "react-router-dom";
 
-const getRandomIndexes = (max, length) => {
-    const isDuplicate = (arr, randNum) =>
-        arr.reduce((dupCnt, arrVal) => arrVal === randNum, false);
-    let array = [];
-
-    for (let i = 0; i < max; ++i) {
-        let randIdx = 0;
-        do {
-            randIdx = Math.floor(Math.random() * length);
-        } while (isDuplicate(array, randIdx));
-
-        array.push(randIdx);
+const getRandomIndexes = (length, max) => {
+    // Create range.
+    // [0, 1, 2, 3...]
+    let incrementList = [];
+    for ( let i = 0; i < max; ++i )
+    {
+        incrementList.push(i);
     }
 
-    return array;
-}
+    // Shuffle.
+    // WARNING: This makes incrementList empty.
+    let shuffled = [];
+    for ( let i_ = max; i_ !== 0; --i_ )
+    {
+        const i = i_ - 1; // This is actual index.
+
+        // Get random number under i.
+        const randomNumber = Math.floor(Math.random() * (i + 1));
+
+        // Take one.
+        const takenValue = incrementList[randomNumber];
+        incrementList.splice(randomNumber, 1);
+
+        // Add to shuffled.
+        shuffled.push(takenValue);
+
+        // If we already collected everything, just go out(break).
+        if ( shuffled.length === length )
+        {
+            break;
+        }
+    }
+
+    return shuffled;
+    // const isDuplicate = (arr, randNum) =>
+    //     arr.reduce((dupCnt, arrVal) => arrVal === randNum, false);
+    //
+    // let array = [];
+    // for (let i = 0; i < length; ++i) {
+    //     let randIdx = 0;
+    //     do {
+    //         randIdx = Math.floor(Math.random() * length);
+    //     } while (isDuplicate(array, randIdx));
+    //
+    //     array.push(randIdx);
+    // }
+    //
+    // return array;
+};
 
 const getNewSelection = (people) => {
-    const list = people.filter(p => !p.isSelected);
-    const idxes = getRandomIndexes(2, list.length);
+    // 선택되지 않은 사람들만을 저장합니다.
+    const notSelectedPeople = people.filter(p => !p.isSelected);
+
+    // 두 명의 후보를 추려냅니다.
+    const newPersonIndexes = getRandomIndexes(2, notSelectedPeople.length);
+
     return [
-        list[idxes[0]],
-        list[idxes[1]],
+        notSelectedPeople[newPersonIndexes[0]],
+        notSelectedPeople[newPersonIndexes[1]],
     ];
-}
+};
 
 const getModifiedPeopleArray = (people, id, modifiedData) => {
     // Find clicked person.
@@ -41,12 +78,14 @@ const getModifiedPeopleArray = (people, id, modifiedData) => {
     copy.splice(clickedPersonIndex, 1, newClickedPerson);
 
     return copy;
-}
+};
 
 const Game = () => {
     const location = useLocation();
     const history = useHistory();
+
     const {initialRound} = location.state;
+
     const [people, setPeople] = useState([]);
     const [displayedPeopleIds, setDisplayedPeopleIds] = useState([]);
     const [curRound, setCurRound] = useState(initialRound);
@@ -107,9 +146,6 @@ const Game = () => {
 
         // If game ends, route to result page
         if (curRound_ < 2) {
-            console.log('Game Over');
-            // TODO: Transfer to result page
-
             const win = displayedPeopleIds.find(e => e.id === id);
             history.push({ pathname: '/result', state: { wins: win }});
             return;
@@ -135,17 +171,17 @@ const Game = () => {
                         {displayedPeopleIds.map(selection =>
                             <PersonCard
                                 key={selection.id}
-                                id={selection.id}
                                 picture={selection.picture}
                                 name={selection.name}
-                                onSelectPeople={onClick}
+                                onSelectPeople={()=>onClick(selection.id)}
                             />
                         )}
                     </CardGroup>
                 ):
-            <p>로딩중...</p>}
+                <p>로딩중...</p>
+            }
         </Container>
-    )
-}
+    );
+};
 
 export default Game;
